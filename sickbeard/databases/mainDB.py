@@ -25,7 +25,7 @@ from sickbeard.providers.generic import GenericProvider
 from sickbeard import encodingKludge as ek
 from sickbeard.name_parser.parser import NameParser, InvalidNameException
 
-MAX_DB_VERSION = 15
+MAX_DB_VERSION = 16
 
 class MainSanityCheck(db.DBSanityCheck):
     def check(self):
@@ -100,7 +100,6 @@ class InitialSchema (db.SchemaUpgrade):
             "CREATE TABLE tv_episodes (episode_id INTEGER PRIMARY KEY, showid NUMERIC, tvdbid NUMERIC, name TEXT, season NUMERIC, episode NUMERIC, description TEXT, airdate NUMERIC, hasnfo NUMERIC, hastbn NUMERIC, status NUMERIC, location TEXT);",
             "CREATE TABLE info (last_backlog NUMERIC, last_tvdb NUMERIC);",
             "CREATE TABLE history (action NUMERIC, date NUMERIC, showid NUMERIC, season NUMERIC, episode NUMERIC, quality NUMERIC, resource TEXT, provider NUMERIC);"
-            "CREATE TABLE frenchtorrentdb_history (date TEXT, link TEXT);"
         ]
         for query in queries:
             self.connection.action(query)
@@ -721,9 +720,9 @@ class Whitelist(Blacklist):
         self.connection.action(query)
         self.incDBVersion()
         
-class AddFrenchTorrentDBHistoryTable(AddSceneNumbers):    
+class AddFrenchTorrentDBHistoryTable(Blacklist):    
     def test(self):
-        return self.checkDBVersion() >= 15
+        return self.checkDBVersion() >= 16
 
     def execute(self):
         if self.hasTable("frenchtorrentdb_history") != True:
