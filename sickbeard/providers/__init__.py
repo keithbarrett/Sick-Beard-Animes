@@ -23,6 +23,7 @@ __all__ = ['ezrss',
            'womble',
            'fanzub',
            'btn',
+           'frenchtorrentdb',
            'nzbx',
            'omgwtfnzbs',
            ]

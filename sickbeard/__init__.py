@@ -30,7 +30,7 @@ from threading import Lock
 
 # apparently py2exe won't build these unless they're imported somewhere
 from sickbeard import providers, metadata
-from providers import ezrss, tvtorrents, torrentleech, btn, nzbsrus, newznab, womble, nzbx, omgwtfnzbs, fanzub
+from providers import ezrss, tvtorrents, torrentleech, btn, nzbsrus, newznab, womble, nzbx, omgwtfnzbs, fanzub, frenchtorrentdb
 from sickbeard.config import CheckSection, check_setting_int, check_setting_str, ConfigMigrator
 
 from sickbeard import searchCurrent, searchBacklog, showUpdater, versionChecker, properFinder, autoPostProcesser
@@ -40,6 +40,7 @@ from sickbeard import naming
 
 from common import SD, SKIPPED, NAMING_REPEAT
 
+from sickbeard.providers.frenchtorrentdb import FrenchTorrentDBProvider
 from sickbeard.databases import mainDB, cache_db
 
 from lib.configobj import ConfigObj
@@ -168,6 +169,11 @@ TORRENTLEECH_KEY = None
 
 BTN = False
 BTN_API_KEY = None
+
+FRENCHTORRENTDB = False
+FRENCHTORRENTDB_USERNAME = None
+FRENCHTORRENTDB_PASSWORD = None
+FRENCHTORRENTDB_USER_LIMIT = 0
 
 TORRENT_DIR = None
 
@@ -349,6 +355,7 @@ def initialize(consoleLogging=True):
                 PLEX_SERVER_HOST, PLEX_HOST, PLEX_USERNAME, PLEX_PASSWORD, \
                 showUpdateScheduler, __INITIALIZED__, LAUNCH_BROWSER, showList, loadingShowList, \
                 NZBS, NZBS_UID, NZBS_HASH, EZRSS, TVTORRENTS, TVTORRENTS_DIGEST, TVTORRENTS_HASH, BTN, BTN_API_KEY, TORRENTLEECH, TORRENTLEECH_KEY, \
+                FRENCHTORRENTDB, FRENCHTORRENTDB_USERNAME, FRENCHTORRENTDB_PASSWORD, FRENCHTORRENTDB_USER_LIMIT, \
                 TORRENT_DIR, USENET_RETENTION, SOCKET_TIMEOUT, \
                 SEARCH_FREQUENCY, DEFAULT_SEARCH_FREQUENCY, BACKLOG_SEARCH_FREQUENCY, \
                 QUALITY_DEFAULT, FLATTEN_FOLDERS_DEFAULT, ANIME_DEFAULT, STATUS_DEFAULT, \
@@ -572,6 +579,12 @@ def initialize(consoleLogging=True):
         CheckSection(CFG, 'BTN')
         BTN = bool(check_setting_int(CFG, 'BTN', 'btn', 0))
         BTN_API_KEY = check_setting_str(CFG, 'BTN', 'btn_api_key', '')
+
+        CheckSection(CFG, 'FrenchTorrentDB')
+        FRENCHTORRENTDB = bool(check_setting_int(CFG, 'FRENCHTORRENTDB', 'frenchtorrentdb', 0))
+        FRENCHTORRENTDB_USERNAME = check_setting_str(CFG, 'FRENCHTORRENTDB', 'username', '')
+        FRENCHTORRENTDB_PASSWORD = check_setting_str(CFG, 'FRENCHTORRENTDB', 'password', '')
+        FRENCHTORRENTDB_USER_LIMIT = int(check_setting_int(CFG, 'FRENCHTORRENTDB', 'user_limit', 0))
 
         CheckSection(CFG, 'TorrentLeech')
         TORRENTLEECH = bool(check_setting_int(CFG, 'TorrentLeech', 'torrentleech', 0))
@@ -1091,6 +1104,12 @@ def save_config():
     new_config['BTN'] = {}
     new_config['BTN']['btn'] = int(BTN)
     new_config['BTN']['btn_api_key'] = BTN_API_KEY
+
+    new_config['FRENCHTORRENTDB'] = {}
+    new_config['FRENCHTORRENTDB']['frenchtorrentdb'] = int(FRENCHTORRENTDB)
+    new_config['FRENCHTORRENTDB']['username'] = FRENCHTORRENTDB_USERNAME
+    new_config['FRENCHTORRENTDB']['password'] = FRENCHTORRENTDB_PASSWORD
+    new_config['FRENCHTORRENTDB']['user_limit'] = int(FRENCHTORRENTDB_USER_LIMIT)
 
     new_config['TorrentLeech'] = {}
     new_config['TorrentLeech']['torrentleech'] = int(TORRENTLEECH)

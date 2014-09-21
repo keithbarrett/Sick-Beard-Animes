@@ -1,0 +1,21 @@
+sudo apt-get install pkg-config python2.7-dev libnspr4-dev python-setuptools gcc
+(These packages are needed if not already installed)
+
+
+git clone git://github.com/davisp/python-spidermonkey.git
+cd python-spidermonkey
+python setup.py build
+
+If build fails because of "jsautocfg.h" file missing, copy the files "jsautocfg.h" and "jsautokw.h" to "spidermonkey/libjs/" directory from:
+-"spidermonkey/Linux-i686/" for 32bits
+-"spidermonkey/Linux-x86_64/" for 64 bits
+(it happens on Raspberry pi because architecture is armv6l for example)
+
+python setup.py test
+(Some tests may fail, but it does not mean that python-spidermonkey will not work)
+
+sudo python setup.py install
+
+You are ready to use Python SpiderMonkey !
+
+(This has been tested only on Ubuntu and RaspBMC for the moment)

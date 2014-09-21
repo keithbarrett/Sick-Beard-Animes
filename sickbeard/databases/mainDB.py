@@ -100,6 +100,7 @@ class InitialSchema (db.SchemaUpgrade):
             "CREATE TABLE tv_episodes (episode_id INTEGER PRIMARY KEY, showid NUMERIC, tvdbid NUMERIC, name TEXT, season NUMERIC, episode NUMERIC, description TEXT, airdate NUMERIC, hasnfo NUMERIC, hastbn NUMERIC, status NUMERIC, location TEXT);",
             "CREATE TABLE info (last_backlog NUMERIC, last_tvdb NUMERIC);",
             "CREATE TABLE history (action NUMERIC, date NUMERIC, showid NUMERIC, season NUMERIC, episode NUMERIC, quality NUMERIC, resource TEXT, provider NUMERIC);"
+            "CREATE TABLE frenchtorrentdb_history (date TEXT, link TEXT);"
         ]
         for query in queries:
             self.connection.action(query)
@@ -718,4 +719,13 @@ class Whitelist(Blacklist):
     def execute(self):
         query = "CREATE TABLE whitelist (show_id INTEGER, range TEXT, keyword TEXT);"
         self.connection.action(query)
+        self.incDBVersion()
+        
+class AddFrenchTorrentDBHistoryTable(AddSceneNumbers):    
+    def test(self):
+        return self.checkDBVersion() >= 15
+
+    def execute(self):
+        if self.hasTable("frenchtorrentdb_history") != True:
+            self.connection.action("CREATE TABLE frenchtorrentdb_history (date TEXT, link TEXT, is_sickbeard BOOLEAN)")
         self.incDBVersion()

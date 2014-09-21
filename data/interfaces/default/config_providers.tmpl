@@ -86,7 +86,7 @@
                                 <span class="component-title jumbo">Configure Provider:</span>
                                 <span class="component-desc">
                                     #set $provider_config_list = []
-                                    #for $cur_provider in ("nzbs_r_us", "omgwtfnzbs", "tvtorrents", "torrentleech", "btn"):
+                                    #for $cur_provider in ("nzbs_r_us", "omgwtfnzbs", "tvtorrents", "torrentleech", "btn", "frenchtorrentdb"):
                                         #set $cur_provider_obj = $sickbeard.providers.getProviderClass($cur_provider)
                                         #if $cur_provider_obj.providerType == $GenericProvider.NZB and not $sickbeard.USE_NZBS:
                                             #continue
@@ -181,6 +181,35 @@
                             </label>
                         </div>
                     </div><!-- /torrentleechDiv //-->
+
+                    <div class="providerDiv" id="frenchtorrentdbDiv">
+                        <div>
+                         	 <label class="clearfix">
+                         	 	<span><FONT color=red>WARNING: FrenchTorrentDB can be used only if python-spidermonkey is installed. To install it refer to "python-spidermonkey_install.txt" in SickBeard main folder.</FONT> </span>
+                         	 </label>
+                        </div>
+                        <div class="field-pair">
+                            <label class="clearfix">
+                                <span class="component-title">FrenchTorrentDB User name:</span>
+                                <input class="component-desc" type="text" name="frenchtorrentdb_username" value="$sickbeard.FRENCHTORRENTDB_USERNAME" size="40" />
+                            </label>
+                        </div>
+                        <div class="field-pair">
+                            <label class="clearfix">
+                                <span class="component-title">FrenchTorrentDB Password:</span>
+                                <input class="component-desc" type="text" name="frenchtorrentdb_password" value="$sickbeard.FRENCHTORRENTDB_PASSWORD" size="40" />
+                            </label>
+                        </div>
+                        <div class="field-pair">
+                            <label class="clearfix">
+                                <span class="component-title">FrenchTorrentDB User Limit:</span>
+                                <input class="component-desc" type="text" name="frenchtorrentdb_user_limit" value="$sickbeard.FRENCHTORRENTDB_USER_LIMIT" size="40" />
+                            </label>
+                            <label class="clearfix">
+                            	<span><b>Note:</b> This limit will be used to limit the number of downloads done by SickBeard. If 0 the natural limit of FrenchTorrentDB will be used.</span>
+                            </label>
+                        </div>
+                    </div><!-- /frenchtorrentdbDiv //-->
 
                     <div class="providerDiv" id="btnDiv">
                         <div class="field-pair">
