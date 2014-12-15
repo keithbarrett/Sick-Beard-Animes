@@ -31,6 +31,7 @@ import json
 from datetime import datetime, timedelta
 from multiprocessing import Lock
 from urllib2 import URLError
+import re
 
 class DownloadedEpisode(object):
     
@@ -197,7 +198,8 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
         
         generic.TorrentProvider.__init__(self, "FrenchTorrentDB")
 
-        self.supportsBacklog = True
+        self.supportsBacklog = False    
+        self.supportsAbsoluteNumbering = True
         
         self.cj = cookielib.CookieJar()
         self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))
@@ -214,57 +216,65 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
     def isEnabled(self):
         return sickbeard.FRENCHTORRENTDB
     
-    def getSearchParams(self, searchString, audio_lang, subcat, french=None):
+    def getSearchParams(self, searchString, anime=False, subcat=""):
         """
             Return the search parameters for the given category
         """
-        url = "group=series"
-        if subcat == "Season":
-            url += '&' + urllib.urlencode({'adv_cat[s][7]': 199}) #Value for TV Pack
-            if audio_lang == "en" and french==None:
-                url += '&' + urllib.urlencode({'name': searchString + ' VOSTFR' }) #VO is usually not available in frenchtorrentdb
-            elif audio_lang == "fr" or french:
-                url += '&' + urllib.urlencode({'name': searchString + ' FRENCH' })
+        if anime:
+            url = "group=tv"
+            url += '&' + urllib.urlencode({'adv_cat[s][4]' : 128}) #Animes
         else:
-            url += '&' + urllib.urlencode({'name': searchString});
-            if audio_lang == "en" and french==None:
-                url += '&' + urllib.urlencode({'adv_cat[s][3]' : 101, 'adv_cat[s][4]' : 191}) #TV VOSTFR SD and HD
-            elif audio_lang == "fr" or french:
-                url += '&' + urllib.urlencode({'adv_cat[s][1]' : 95, 'adv_cat[s][2]' : 190}) #TV FR SD and HD
-                
+            url = "group=series"            
+            url += '&' + urllib.urlencode({'adv_cat[s][3]' : 101, 'adv_cat[s][4]' : 191}) #TV VOSTFR SD and HD
+            if subcat == "Season":
+                url += '&' + urllib.urlencode({'adv_cat[s][7]': 199}) #Value for TV Pack
+        
+        url += '&' + urllib.urlencode({'name': searchString});     
         return url
 
             
-    def _get_season_search_strings(self, show, season):
+    def _get_season_search_strings(self, show, season, episode=None):
         """
             Return a search string for the given season
         """
         showNam = show_name_helpers.allPossibleShowNames(show)
         showNames = list(set(showNam))
         results = []
-        patterns = ["%s S%02d"]
-        for showName in showNames:
-            #Series
-            for pattern in patterns:
-                results.append( self.getSearchParams(pattern % ( showName, season), show.audio_lang, "Season"))
-            #field season does not work for TV Packs
-            #results.append( self.getSearchParams(showName, show.audio_lang, "Season")+ "&season=" + str(season))
-            # TODO: Do something for Animes
+        #Do something different for animes
+        if hasattr(show, "is_anime") and show.is_anime:
+            #Look only for wanted eps
+            for season in show.episodes:
+                for ep in show.episodes[season]:
+                    results.append(self._get_episode_search_strings(show.episodes[season][ep]))
+        else:
+            patterns = ["%s S%02d"]
+            for showName in showNames:
+                #Series
+                for pattern in patterns:
+                    results.append( self.getSearchParams(pattern % ( showName, season)), False, "Season")
+                #field season does not work for TV Packs
+                #results.append( self.getSearchParams(showName, show.audio_lang, "Season")+ "&season=" + str(season))
         return results
 
-    def _get_episode_search_strings(self, ep_obj, french=None):
+    def _get_episode_search_strings(self, ep_obj):
         """
             Return a search string for the given episode
         """
         showNam = show_name_helpers.allPossibleShowNames(ep_obj.show)
         showNames = list(set(showNam))
         results = []
-        patterns = ["%s S%02dE%02d","%s %dx%02d"]
-        for showName in showNames:
-            for pattern in patterns:
-                results.append( self.getSearchParams( pattern % ( showName, ep_obj.scene_season, ep_obj.scene_episode), ep_obj.show.audio_lang, "", french ))
-            results.append( self.getSearchParams( showName, ep_obj.show.audio_lang, "", french )+ "&season=" + str(ep_obj.scene_season) + "&episode=" + str(ep_obj.scene_episode))
-            # TODO: Do something for Animes
+        if ep_obj.show.is_anime:
+            patterns = ["%s E%02d","%s %03d"]
+            for showName in showNames:
+                for pattern in patterns:
+                    results.append( self.getSearchParams( pattern % ( showName, ep_obj.absolute_number), True ))
+        else:
+            patterns = ["%s S%02dE%02d","%s %dx%02d"]
+            for showName in showNames:
+                for pattern in patterns:
+                    results.append( self.getSearchParams( pattern % ( showName, ep_obj.scene_season, ep_obj.scene_episode),  False))
+                results.append( self.getSearchParams(showName, False)+ "&season=" + str(ep_obj.scene_season) + "&episode=" + str(ep_obj.scene_episode))
+                # TODO: Do something for Animes
         return results
     
     def _get_title_and_url(self, item):
@@ -511,12 +521,7 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
                 if quality==Quality.UNKNOWN and title:
                     if '720p' not in title.lower() and '1080p' not in title.lower():
                         quality=Quality.SDTV
-                if show and french==None:
-                    results.append( FrenchTorrentDBSearchResult( link['title'], downloadURL, quality, str(show.audio_lang) ) )
-                elif show and french:
-                    results.append( FrenchTorrentDBSearchResult( link['title'], downloadURL, quality, 'fr' ) )
-                else:
-                    results.append( FrenchTorrentDBSearchResult( link['title'], downloadURL, quality ) )
+                results.append( FrenchTorrentDBSearchResult( link['title'], downloadURL, quality ) )
                 
         return results
     
@@ -524,7 +529,7 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
         """
         Returns a result of the correct type for this provider
         """
-        result = classes.TorrentDataSearchResult(episodes)
+        result = classes.TorrentSearchResult(episodes)
         result.provider = self
 
         return result    
@@ -581,11 +586,11 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
     
 class FrenchTorrentDBSearchResult:
     
-    def __init__(self, title, url, quality, audio_langs=None):
-        self.title = title
+    def __init__(self, title, url, quality):
+        
+        self.title = re.sub(r'E([0-9].+)', r'\1', title)
         self.url = url
         self.quality = quality
-        self.audio_langs=audio_langs
         
     def getQuality(self):
         return self.quality
