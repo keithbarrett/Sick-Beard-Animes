@@ -243,9 +243,8 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
         #Do something different for animes
         if hasattr(show, "is_anime") and show.is_anime:
             #Look only for wanted eps
-            for season in show.episodes:
-                for ep in show.episodes[season]:
-                    results.append(self._get_episode_search_strings(show.episodes[season][ep]))
+            for ep in show.episodes[season]:
+                results.append(self._get_episode_search_strings(show.episodes[season][ep]))
         else:
             patterns = ["%s S%02d"]
             for showName in showNames:
