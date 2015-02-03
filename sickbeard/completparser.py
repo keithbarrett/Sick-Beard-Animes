@@ -64,8 +64,8 @@ class CompleteParser(object):
             result = self._parse(name_to_parse)
         except Exception, e:
             self.complete_result.lock.release()
-            self._log(u"Error during parsing. Error will raise again. traceback:", logger.ERROR)
-            self._log(traceback.format_exc(), logger.ERROR)
+            self._log(u"Error during parsing. Error will raise again. traceback:", logger.WARNING)
+            self._log(traceback.format_exc(), logger.WARNING)
             raise e
         else:
             self.complete_result.lock.release()

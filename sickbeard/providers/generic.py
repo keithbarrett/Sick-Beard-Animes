@@ -261,10 +261,14 @@ class GenericProvider:
 
             (title, url) = self._get_title_and_url(item)
 
-            cp = CompleteParser(show=episode.show, tvdbActiveLookUp=True)
-            cpr = cp.parse(title)
+            try:
+                cp = CompleteParser(show=episode.show, tvdbActiveLookUp=True)
+                cpr = cp.parse(title)
 
-            parse_result = cpr.parse_result
+                parse_result = cpr.parse_result
+            except Exception:
+                logger.log(u"Unable to parse the filename "+title+" into a valid episode", logger.WARNING)
+                continue
 
             if episode.show.air_by_date:
                 if parse_result.air_date != episode.airdate:
