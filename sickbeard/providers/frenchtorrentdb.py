@@ -464,7 +464,7 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
                 logger.log(u"Impossible to load FrenchTorrentDB page (" + url + "): "+ex(e), logger.ERROR)
                 self.loginLock.release()
                 return [None,None]
-            except socket.timeout, e:
+            except Exception, e:
                 #Exception while loading the page
                 logger.log(u"Impossible to load FrenchTorrentDB page (" + url + "): "+ex(e), logger.ERROR)
                 self.loginLock.release()
