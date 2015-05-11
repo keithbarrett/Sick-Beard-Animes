@@ -198,7 +198,7 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
         
         generic.TorrentProvider.__init__(self, "FrenchTorrentDB")
 
-        self.supportsBacklog = False    
+        self.supportsBacklog = True    
         self.supportsAbsoluteNumbering = True
         
         self.cj = cookielib.CookieJar()
@@ -320,7 +320,7 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
             returnToParse = r.read()
             #This error message happens if we try to connect several times
             #Even if it says that we are not connected, in fact we are
-            if returnToParse.decode("iso-8859-1") == u"Vous êtes actuellement déconnecté.":
+            if returnToParse.decode("iso-8859-1") == u"Vous Ãªtes actuellement dÃ©connectÃ©.":
                 return True
             else:
                 returnJson = json.loads(returnToParse)
@@ -349,7 +349,7 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
         while links.__len__() < FrenchTorrentDBProvider.DOWNLOAD_LIMIT:
             #Open the next history page
             r,soup = self._urlOpen(self.url + "?section=TORRENTS&grid_id=&tab=3&menu=2&page="+str(page)+"&navname=#nav_")
-            if not soup:
+            if soup == None:
                 return False
                 
             hisotryTable = soup.find("div", { "class" : "DataGrid" })
@@ -459,15 +459,14 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
         for i in xrange(FrenchTorrentDBProvider.MAX_LOGIN_TRIES):
             try:
                 r = self.opener.open(url)
-            except URLError, e:
-                #Exception while loading the page
-                logger.log(u"Impossible to load FrenchTorrentDB page (" + url + "): "+ex(e), logger.ERROR)
-                self.loginLock.release()
-                return [None,None]
             except Exception, e:
                 #Exception while loading the page
-                logger.log(u"Impossible to load FrenchTorrentDB page (" + url + "): "+ex(e), logger.ERROR)
-                self.loginLock.release()
+                logger.log(u"Impossible to load FrenchTorrentDB page (" + url + "): "+ex(e), logger.WARNING)
+                #if we reached max retries
+                if i == FrenchTorrentDBProvider.MAX_LOGIN_TRIES -1:
+                    self.loginLock.release()
+                    return [None,None]
+
     
             #if it is HTML content then it might be a login page
             if r.headers.type == "text/html":        
@@ -503,7 +502,7 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
         results = []
                 
         r,soup = self._urlOpen(searchUrl)
-        if not soup:
+        if soup == None:
             return []
 
         resultsTable = soup.find("div", { "class" : "DataGrid" })
@@ -549,7 +548,7 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
         else:
             try:
                 r,torrent = self._urlOpen(url)
-                if not r or not torrent:
+                if r == None or torrent == None:
                     return 
                 
                 #If it is a torrent file
