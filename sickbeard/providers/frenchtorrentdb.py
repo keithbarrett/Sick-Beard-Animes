@@ -461,6 +461,8 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
                 r = self.opener.open(url)
             except Exception, e:
                 #Exception while loading the page
+                r = None
+                soup = None
                 logger.log(u"Impossible to load FrenchTorrentDB page (" + url + "): "+ex(e), logger.WARNING)
                 #if we reached max retries
                 if i == FrenchTorrentDBProvider.MAX_LOGIN_TRIES -1:
