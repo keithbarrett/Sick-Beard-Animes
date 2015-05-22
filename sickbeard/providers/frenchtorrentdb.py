@@ -468,6 +468,7 @@ class FrenchTorrentDBProvider(generic.TorrentProvider):
                 if i == FrenchTorrentDBProvider.MAX_LOGIN_TRIES -1:
                     self.loginLock.release()
                     return [None,None]
+                continue
 
     
             #if it is HTML content then it might be a login page
